@@ -76,7 +76,7 @@ for i in range(0, len(data)):
 while True:
     try:
         time.sleep(5)
-        article_entities.to_csv("article_entities_spacy.csv", encoding='utf-8-sig')
+        article_entities.to_csv("articles_entities_spacy.csv", encoding='utf-8-sig')
         print("CSV stored!")
         break
     except KeyboardInterrupt:
