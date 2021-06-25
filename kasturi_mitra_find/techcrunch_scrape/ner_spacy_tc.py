@@ -6,7 +6,7 @@ import time
 from itertools import *
 
 data = pd.read_csv("techcrunch_articles.csv", index_col=0)
-columns = ['article_id', 'people', 'orgs', 'potential_startups']
+columns = ['article_id', 'people', 'orgs', 'potential_startups', 'matched_title']
 article_entities = pd.DataFrame(columns=columns)
 
 for i in range(0, len(data)):
@@ -46,21 +46,23 @@ for i in range(0, len(data)):
                 orgs[org] = orgs[org].replace("s’", "s")
 
             potential_startups = []
+            matched_title = 1
             # if an ORG in body is present in the title, it is a potential startup
             for org in orgs:
                 if title.find(org) != -1:
                     potential_startups.append(org)
             if len(potential_startups) == 0: # no matching ORG in body and title
                 potential_startups = orgs
+                matched_title = 0
 
             people = None
             try:
-                people = entities['PERSON']
+                people = entities['PERSON'] 
             except:  # no key error
                 people = []
             potential_founders = people
 
-            temp = pd.DataFrame([[i, potential_founders, orgs, potential_startups]], columns=columns)
+            temp = pd.DataFrame([[i, potential_founders, orgs, potential_startups, matched_title]], columns=columns)
             article_entities = pd.concat([article_entities, temp], ignore_index=True)
 
             print("")
