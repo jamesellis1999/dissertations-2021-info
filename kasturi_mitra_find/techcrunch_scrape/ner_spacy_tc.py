@@ -57,7 +57,7 @@ for i in range(0, len(data)):
 
             people = None
             try:
-                people = entities['PERSON'] 
+                people = entities['PERSON']
             except:  # no key error
                 people = []
             potential_founders = people
