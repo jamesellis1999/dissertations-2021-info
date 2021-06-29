@@ -1,23 +1,23 @@
 # only tag entities and extract those of interest; doesn't validate against database
-# use StanfordNLP
+# use NLTK built in
 import pandas as pd
 import spacy
 import time
 from itertools import *
-from nltk.tag import StanfordNERTagger
+import nltk
 from nltk.tokenize import word_tokenize
+from nltk.chunk import tree2conlltags
+from nltk import pos_tag
 import os
-java_path = "C:/Program Files/Java/jdk-16/bin/java.exe"
-os.environ['JAVAHOME'] = java_path
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('maxent_ne_chunker')
+# nltk.download('all')
 
 data = pd.read_csv("techcrunch_articles.csv", index_col=0)
 columns = ['article_id', 'people', 'orgs', 'potential_startups', 'matched_title']
 article_entities = pd.DataFrame(columns=columns)
 
-# load stanford NER
-st = StanfordNERTagger("../stanford-ner/classifiers/english.conll.4class.distsim.crf.ser.gz",
-                           "../stanford-ner/stanford-ner.jar",
-                           encoding='utf-8')
+
 
 for i in range(0, len(data)):
     j = 0
@@ -28,8 +28,13 @@ for i in range(0, len(data)):
 
             title = data.iloc[i]['title']
             body = data.iloc[i]['body']
-            tokenized_body = word_tokenize(body)
-            classified_body = st.tag(tokenized_body)
+            tokens = word_tokenize(body)
+            tag = pos_tag(tokens)
+            # tags as a tree
+            ne_tree = nltk.ne_chunk(tag)
+            # convert to list of lists
+            classified_body = tree2conlltags(ne_tree)
+            # print(classified_body)
 
             n = len(classified_body)
             orgs = []
@@ -39,9 +44,9 @@ for i in range(0, len(data)):
             while j<n:
                 org = ""
                 k = 1
-                if classified_body[j][1] == 'ORGANIZATION':
+                if classified_body[j][2].find('ORGANIZATION') != -1:
                     org += classified_body[j][0] + " "
-                    while j+k<n and classified_body[j+k][1] == 'ORGANIZATION':
+                    while j+k<n and classified_body[j+k][2].find('ORGANIZATION') != -1:
                         org += classified_body[j+k][0] + " "
                         k += 1
                     orgs.append(org.strip())
@@ -53,13 +58,15 @@ for i in range(0, len(data)):
             while j < n:
                 founder = ""
                 k = 1
-                if classified_body[j][1] == 'PERSON':
+                if classified_body[j][2].find('PERSON') != -1:
                     founder += classified_body[j][0] + " "
-                    while j+k<n and classified_body[j + k][1] == 'PERSON':
+                    while j+k<n and classified_body[j + k][2].find('PERSON') != -1:
                         founder += classified_body[j + k][0] + " "
                         k += 1
                     founders.append(founder.strip())
                 j += k
+            # print(founders)
+            # print(orgs)
 
             # remove possesive apostrophes 's and ’s (two distinct unicode characters)
             title = title.replace("'s", "")
@@ -101,7 +108,7 @@ for i in range(0, len(data)):
 while True:
     try:
         time.sleep(5)
-        article_entities.to_csv("articles_entities_stanford.csv", encoding='utf-8-sig')
+        article_entities.to_csv("articles_entities_nltk.csv", encoding='utf-8-sig')
         print("CSV stored!")
         break
     except KeyboardInterrupt:
