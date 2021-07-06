@@ -57,4 +57,4 @@ for i in range(0, len(spacy)):
 
 
 # save locally
-data.to_csv('combined_ner_output.csv', encoding='utf-8-sig')
+data.to_csv('combined_ner_output_org.csv', encoding='utf-8-sig')
