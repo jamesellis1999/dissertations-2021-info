@@ -37,11 +37,9 @@ def investments(datestring, delta_t=None):
         return str(x.mode()[0])
 
     fund['most_common_invest_type'] = fund.groupby(['lead_investor_uuids'])['investment_type'].transform(most_common)
-   
     df = pd.merge(sc, fund, on='org_uuid', how='inner')
 
     return df
-
 
 if __name__=="__main__":
     investments('2020-01-01', delta_t=5)
