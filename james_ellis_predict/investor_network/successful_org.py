@@ -2,6 +2,7 @@ import pandas as pd
 from functools import reduce
 from data_preprocess import clean_organisations, clean_acquisitions, clean_ipos
 import tabloo
+import numpy as np
 
 def successful_org(datestring):
     '''
@@ -51,8 +52,12 @@ def successful_org(datestring):
     #     (df['made_acquisition_on'] < df['founded_on']) |
     #     (df['acquired_on'] < df['founded_on'])
     # ]
-
-    return df['org_uuid']
+  
+    # Replace NaN with a bogus date for easy min function
+    df = df.replace(np.NaN, '9999-01-01', regex=True)
+    df['successful_on'] = df[['went_public_on', 'made_acquisition_on', 'acquired_on']].min(axis=1)
+    
+    return df[['org_uuid', 'successful_on']]
 
 if __name__=="__main__":
     successful_org("2013-01-01")

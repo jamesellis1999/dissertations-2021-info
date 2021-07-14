@@ -5,7 +5,7 @@ from networkx.algorithms import bipartite
 from networkx.algorithms.centrality import closeness_centrality, degree_centrality, betweenness_centrality
 import tabloo
 
-def centrality_t(datestring, metric = 'closeness'):
+def centrality_t(datestring, metric = 'closeness', delta_t = None):
     '''
     Creates a network at a given time 
     '''
@@ -19,9 +19,9 @@ def centrality_t(datestring, metric = 'closeness'):
     if metric not in metrics:
         raise Exception("Invalid centrality metric. Pick one of 'closeness', 'degree', 'betweenness'")
 
-    data = investments(datestring)
-
-    invest_type = data[['lead_investor_uuids', 'most_common_invest_type']].drop_duplicates(subset='lead_investor_uuids').rename(columns={'lead_investor_uuids':'uuid'})
+    data = investments(datestring, delta_t = delta_t)
+    
+    other_data = data[['lead_investor_uuids', 'most_common_invest_type']].drop_duplicates(subset='lead_investor_uuids').rename(columns={'lead_investor_uuids':'uuid'})
 
     G = nx.from_pandas_edgelist(data, 'org_uuid', 'lead_investor_uuids')
 
@@ -34,10 +34,11 @@ def centrality_t(datestring, metric = 'closeness'):
     investors = pd.read_csv('../../../data/raw/investors.csv', usecols=['uuid', 'name', 'investor_types'])
     
     merge = pd.merge(df, investors, on='uuid', how='left')
-    merge = pd.merge(merge, invest_type, on='uuid', how='left')
-    merge.to_csv('vc_centrality.csv', index=False)
+    merge = pd.merge(merge, other_data, on='uuid', how='left')
+    # merge.to_csv('vc_centrality.csv', index=False)
+    tabloo.show(merge)
 
     
 if __name__=="__main__":
-    centrality_t('2020-01-01')
+    centrality_t('2020-01-01', delta_t=5)
 
