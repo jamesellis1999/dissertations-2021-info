@@ -1,4 +1,5 @@
 import pandas as pd
+import networkx as nx
 
 def splitDataFrameList(df,target_column,separator):
     ''' df = dataframe to split,
@@ -17,3 +18,9 @@ def splitDataFrameList(df,target_column,separator):
     df.apply(splitListToRows,axis=1,args = (new_rows,target_column,separator))
     new_df = pd.DataFrame(new_rows)
     return new_df
+    
+def from_pandas_edgelist_weighted(df, source, target, weight):
+
+    g = nx.empty_graph(0, None)
+    g.add_weighted_edges_from(zip(df[source], df[target], df[weight]))
+    return g
