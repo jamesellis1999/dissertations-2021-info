@@ -1,22 +1,18 @@
-r = 'year'
-s_date = '2000'
-e_date = '2010'
-delta_t = 7
-centrality_measure = 'betweenness'
-exp_location = '/ / / / '
+import tabloo
+import pandas as pd
+import time
+from job_transfer import job_transfer
+from network import centrality
 
-save text file of experiment details
+def wws_centrality(ts, metric='closeness'):
+    data = job_transfer(ts)
+    results = centrality(data, metric=metric)
 
-if e_date + delta_t > current_year:
-    throw error
-
-if centrality_measure not in measures:
-    throw error
-
-if r not in resolutions:
-    throw error
-
-if e_date <= e_date:
-    throw error
-
-job_transfer()
+    results.to_csv('wws_{}_centralities.csv'.format(metric))
+    
+if __name__=="__main__":
+    metrics = ['closeness', 'betweenness', 'degree', 'eigenvector']
+    for metric in metrics:
+        t1 = time.time()
+        wws_centrality('2017-12-15', metric=metric)
+        print('Time for {} centrality: {:.2f}'.format(metric, time.time()-t1))
