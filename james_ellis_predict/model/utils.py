@@ -1,6 +1,7 @@
 import pandas as pd 
 import numpy as np
 from itertools import product
+from sklearn.metrics import f1_score
 
 def splitDataFrameList(df,target_column,separator):
     ''' df = dataframe to split,
@@ -31,3 +32,8 @@ def dict_product(d, random_seed=42):
     np.random.shuffle(dict_list)
     
     return dict_list
+
+def xgb_f1(y, t, threshold=0.5):
+    t = t.get_label()
+    y_bin = (y > threshold).astype(int)
+    return 'f1',f1_score(t,y_bin)

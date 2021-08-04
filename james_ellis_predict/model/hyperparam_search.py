@@ -1,12 +1,12 @@
 import pandas as pd 
 import time 
 
-# import tabloo
+import tabloo
 import xgboost as xgb
 
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 
-from utils import dict_product
+from utils import dict_product, xgb_f1
 
 # Same as AutoML search https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html
 paramGrid = {
@@ -38,33 +38,31 @@ df = pd.DataFrame(columns=['AUC', 'Boosting Rounds', 'params'])
 
 # Random parameter search for an hour
 t1 = time.time()
-while time.time() - t1 < 3600:
 
-    for i, params in enumerate(dict_product(paramGrid)):
-        
-        params['objective'] = 'binary:logistic'
-        params['tree_method'] = 'gpu_hist'
-        cv_result = xgb.cv(
-            params,
-            dtrain,
-            num_boost_round=10000,
-            early_stopping_rounds=10,
-            nfold=5,
-            stratified=True,
-            metrics=['auc'],
-            as_pandas=True
-        )
-        
-        df.loc[i, 'Boosting Rounds'] = cv_result.shape[0]
-        df.loc[i, 'AUC'] = cv_result.iloc[-1]['test-auc-mean']
-        df.loc[i, 'params'] = str(params)
-        
-        if i == 1:
-            break
+for i, params in enumerate(dict_product(paramGrid)):
     
-    break
+    params['objective'] = 'binary:logistic'
 
-tabloo.show(df)
+    cv_result = xgb.cv(
+        params,
+        dtrain,
+        num_boost_round=999,
+        early_stopping_rounds=10,
+        nfold=5,
+        stratified=True,
+        feval=xgb_f1,
+        maximize=True,
+        as_pandas=True
+    )  
+    
+    df.loc[i, 'Boosting Rounds'] = cv_result.shape[0]
+    df.loc[i, 'F1'] = cv_result.iloc[-1]['test-f1-mean']
+    df.loc[i, 'params'] = str(params)
+
+    if time.time() - t1 > 3600:
+        break
+        
+df.to_csv('baseline_hyperparam_f1.csv')
 
 
 
