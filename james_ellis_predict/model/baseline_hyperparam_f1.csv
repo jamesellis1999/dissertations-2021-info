@@ -1,3 +1,0 @@
-,AUC,Boosting Rounds,params
-0,0.3575134,75,"{'booster': 'gbtree', 'colsample_bylevel': 1.0, 'colsample_bytree': 0.8, 'max_depth': 10, 'min_child_weight': 15.0, 'alpha': 1, 'lambda': 1, 'subsample': 0.6, 'eta': 0.3, 'objective': 'binary:logistic'}"
-1,0.40581639999999997,115,"{'booster': 'gbtree', 'colsample_bylevel': 1.0, 'colsample_bytree': 0.9, 'max_depth': 15, 'min_child_weight': 0.1, 'alpha': 0.1, 'lambda': 0.001, 'subsample': 0.8, 'eta': 0.3, 'objective': 'binary:logistic'}"
