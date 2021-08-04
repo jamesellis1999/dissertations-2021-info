@@ -57,19 +57,31 @@ def funding_info(tc, ts, stats=False):
     fr = pd.merge(fr, inv, left_on='uuid', right_on='funding_round_uuid', how='left')
     fr = fr.drop(columns = 'funding_round_uuid')
 
+    # Number of investors column doesn't include non-renowned investors 
+    fr['investor_count'] = fr['investor_count'].fillna(0)
+    fr['investor_count'] += fr.groupby('uuid')['investor_uuid'].transform(lambda x: x.isna().sum())
+    
+    # Number of unique renowned investors in the warmup period
+    fr['known_investor_count'] = fr.groupby('org_uuid')['investor_uuid'].transform(lambda x: x.nunique(dropna=True))
+    
     # Number of unique investors in the warmup period
-    fr['total_investor_count'] = fr.groupby('org_uuid')['investor_uuid'].transform('nunique')
-
+    fr['total_investor_count'] = fr['known_investor_count'] + fr.groupby('org_uuid')['investor_uuid'].transform(lambda x: x.isna().sum())
+    
     # Number of investors in the last funding round in the warmup window
     fr['last_round_investor_count'] = fr.sort_values('announced_on').groupby('org_uuid')['investor_count'].transform('last')
 
+    # Number of renowned investors in the last funding round in the warmup window 
+    fr['fund_round_known_investor_count'] = fr.groupby(['org_uuid', 'uuid'])['investor_uuid'].transform(lambda x: x.nunique(dropna=True))
+    fr['last_round_known_investor_count'] = fr.sort_values('announced_on').groupby('org_uuid')['fund_round_known_investor_count'].transform('last')
+
     # Removing any unnecessary columns
-    fr = fr.drop(columns = ['uuid','raised_amount_usd', 'investment_type', 'announced_on', 'investor_count', 'investor_uuid'])
+    fr = fr.drop(columns = ['uuid','raised_amount_usd', 'investment_type', 'announced_on', 'investor_count', 
+                            'investor_uuid', 'fund_round_known_investor_count'])
 
     # Dropping duplicates 
     fr = fr.drop_duplicates(subset=['org_uuid'])
-
-    rounds = ['angel', 'seed', 'grant', 'product_crowdfunding', 'pre_seed']
+  
+    rounds = ['angel', 'seed', 'pre_seed']
     fr = fr[ fr['last_round_investment_type'].isin(rounds) ]
     for round_type in rounds:
         fr['last_round_type_{}'.format(round_type)] = np.where(fr['last_round_investment_type'] == round_type, 1, 0)
