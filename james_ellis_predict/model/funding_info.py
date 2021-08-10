@@ -78,7 +78,7 @@ def funding_info(tc, ts, syn_centrality=None, stats=False):
     fr['investor_count'] = fr['investor_count'].fillna(0)
     fr['investor_count'] += fr.groupby('uuid')['investor_uuid'].transform(lambda x: x.isna().sum())
 
-    # Number of unique renowned investors in the warmup period
+    # Number of unique investors in the warmup period
     fr['total_investor_count'] = fr.groupby('org_uuid')['investor_uuid'].transform(lambda x: x.nunique(dropna=True) + x.isna().sum())
 
     # Syndicate network centralities
