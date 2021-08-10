@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-import tabloo
-
 from data_preprocess import clean_investments, clean_funding
 from utils import splitDataFrameList
 

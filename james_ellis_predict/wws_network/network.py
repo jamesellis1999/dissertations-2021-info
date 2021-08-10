@@ -1,19 +1,21 @@
 import networkx as nx
-import cugraph as cnx
 import pandas as pd
 from networkx.algorithms import bipartite
 from networkx.algorithms.centrality import betweenness_centrality, closeness_centrality,\
                                             degree_centrality, eigenvector_centrality
 
-def centrality(df, metric):
+def centrality(df, metric, gpu=False):
 
-    # Use GPU for betweeness centrality
     metrics = {
         'closeness': closeness_centrality,
-        'betweenness': cnx.betweenness_centrality,
+        'betweenness': betweenness_centrality,
         'degree': degree_centrality,
         'eigenvector': eigenvector_centrality
     }
+
+    if gpu:
+        import cugraph as cnx
+        metrics['betweenness'] = cnx.betweenness_centrality
 
     G = nx.from_pandas_edgelist(df, 'org_uuid', 'person_uuid')
     P = bipartite.projected_graph(G, df['org_uuid'])

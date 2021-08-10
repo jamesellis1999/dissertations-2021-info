@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np
 from itertools import product
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
 
 def splitDataFrameList(df,target_column,separator):
     ''' df = dataframe to split,
@@ -33,7 +33,24 @@ def dict_product(d, random_seed=42):
     
     return dict_list
 
-def xgb_f1(y, t, threshold=0.5):
+def xgb_multi(y, t, threshold=0.5):
     t = t.get_label()
     y_bin = (y > threshold).astype(int)
-    return 'f1',f1_score(t,y_bin)
+    # Last metric in the list is used for early stopping
+    return [('accuracy', accuracy_score(t, y_bin)), ('recall', recall_score(t, y_bin)), 
+            ('precision', precision_score(t, y_bin)), ('f1',f1_score(t,y_bin))]
+
+def xgb_multi_weighted(y, t, threshold=0.5):
+
+    def _replaceitem(x):
+        if x>0:
+            return 3.7
+        return 1
+
+    t = t.get_label()
+    y_bin = (y > threshold).astype(int)
+    weight = list(map(_replaceitem, t))
+
+    # Last metric in the list is used for early stopping
+    return [('accuracy', accuracy_score(t, y_bin)), ('recall', recall_score(t, y_bin)), 
+            ('precision', precision_score(t, y_bin)), ('f1',f1_score(t,y_bin, sample_weight=weight))]

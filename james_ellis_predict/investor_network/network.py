@@ -1,28 +1,31 @@
 import networkx as nx 
-import cugraph as cnx
 import pandas as pd
-import tabloo
 from networkx.algorithms import bipartite
 from networkx.algorithms.centrality import closeness_centrality, degree_centrality, betweenness_centrality,\
                                             eigenvector_centrality, in_degree_centrality, out_degree_centrality
 
-def syndicate_centrality(df, metric = 'closeness'):
+def syndicate_centrality(df, metric = 'closeness', gpu=False):
     '''
     Creates and measures centrality of the syndicate network
     '''
-
     metrics = {
-        'closeness': closeness_centrality,
-        'degree': degree_centrality,
-        'betweenness': cnx.betweenness_centrality,
-        'eigenvector': eigenvector_centrality
-    }
+            'closeness': closeness_centrality,
+            'degree': degree_centrality,
+            'betweenness': betweenness_centrality,
+            'eigenvector': eigenvector_centrality
+        }
 
     directed_metrics = {
         'indegree': in_degree_centrality,
         'outdegree': out_degree_centrality
     }
+    
+    if gpu:
+        import cugraph as cnx
+        metrics['betweenness'] = cnx.betweenness_centrality
 
+    
+    # NOTE not using directed metrics in final results due to lack of data
     if metric in [*directed_metrics]:
         
         G = nx.DiGraph()

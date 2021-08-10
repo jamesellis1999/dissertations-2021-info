@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from tabloo import show
+# from tabloo import show
 import numpy as np
 
 def add_target_variable(org, tc, ts, tf, stats=False):

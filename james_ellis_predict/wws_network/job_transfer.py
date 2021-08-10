@@ -1,5 +1,4 @@
 import pandas as pd 
-import tabloo
 from data_preprocess import clean_organisations, clean_jobs
 
 def job_transfer(ts):

@@ -1,6 +1,5 @@
 # Basic data cleaning on the raw files
 import pandas as pd 
-import tabloo
 from datetime import datetime
 import time
 
