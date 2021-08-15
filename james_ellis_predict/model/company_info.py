@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-# from tabloo import show
+from tabloo import show
 
 from utils import splitDataFrameList
 
-def company_info(tc, ts, wws_centrality=None, stats=False):
+def company_info(tc, ts, wws_centrality=None, wws_binary=False, stats=False):
     '''
     Creates the same company information features used by Arroyo et al. for use
     in the warmup period where tc <= warmup period < ts
@@ -96,7 +96,12 @@ def company_info(tc, ts, wws_centrality=None, stats=False):
             org = pd.merge(org, wws_c_vals, left_on='uuid', right_on='org_uuid', how='left').drop(columns=['org_uuid', 'Unnamed: 0'])
             org = org.rename(columns={'{}_centrality'.format(wws_centrality): 'know_how_{}_centrality'.format(wws_centrality)})
     
+    if wws_binary and wws_centrality:
+        c = 'know_how_{}_centrality'.format(wws_centrality)
+        org[c] = np.where(org[c].notna(), 1, 0)
+
     return org
 
 if __name__=="__main__":
-    show(company_info('2013-12-15','2017-12-15', wws_centrality='closeness', stats=False))
+    show(company_info('2013-12-15','2017-12-15', wws_centrality='closeness', wws_binary=False, stats=False))
+    show(company_info('2013-12-15','2017-12-15', wws_centrality='closeness', wws_binary=True, stats=False))
