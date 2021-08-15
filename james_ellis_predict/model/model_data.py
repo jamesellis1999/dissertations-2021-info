@@ -8,7 +8,7 @@ from funding_info import funding_info
 from founders_info import founders_info
 from target_variable import add_target_variable
 
-def model_data(tc, ts, tf, wws_centrality=None, syn_centrality=None, wws_binary=False, syn_binary=False, save_path=None):
+def model_data(tc, ts, tf, wws_centrality=None, syn_centrality=None, wws_binary=False, syn_binary=False, syn_cb_rank=False, save_path=None):
     '''
     Create a dataframe used as input for the classifier
     
@@ -32,7 +32,7 @@ def model_data(tc, ts, tf, wws_centrality=None, syn_centrality=None, wws_binary=
     '''
 
     comp = company_info(tc, ts, wws_centrality=wws_centrality, wws_binary=wws_binary)
-    fund = funding_info(tc, ts, syn_centrality=syn_centrality, syn_binary=syn_binary)
+    fund = funding_info(tc, ts, syn_centrality=syn_centrality, syn_binary=syn_binary, syn_cb_rank=syn_cb_rank)
     founder = founders_info(tc, ts)
 
     df = pd.merge(comp, fund, left_on='uuid', right_on='org_uuid', how='left').drop(columns='org_uuid')

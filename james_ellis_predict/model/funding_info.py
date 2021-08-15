@@ -4,7 +4,7 @@ from tabloo import show
 from datetime import datetime
 import numpy as np
 
-def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
+def funding_info(tc, ts, syn_centrality=None, syn_binary=False, syn_cb_rank=False, stats=False):
     '''
     Creates the same company information features used by Arroyo et al. for use
     in the warmup period where tc <= warmup period < ts
@@ -15,6 +15,8 @@ def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
     syn_centrality (str): Centrality measure to use for investor syndicate network. 
                         If None, centrality not included. Must be one of 'betweenness', 
                         'closeness', 'degree', or 'eigenvector'
+    syn_binary (bool): Binarize the centrality measures, 1 if present, 0 if NaN
+    syn_cb_rank (bool): Use the reciprocal of the CB rank for the investor instead of centrality measure
     
     Returns:
     Pandas dataframe of company information features
@@ -26,7 +28,7 @@ def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
     
     inv_cols = ['funding_round_uuid', 'investor_uuid']
     inv = pd.read_csv('../../../data/raw/investments.csv', usecols=inv_cols)
-
+     
     # Only interested in funding rounds that occured in the warmup window
     fr = fr[
         (fr['announced_on'] >= tc) &
@@ -41,13 +43,6 @@ def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
         # Shows significant spikes at the start of each year i.e trust code 4
         fr['announced_on'].value_counts(normalize=True).sort_index().plot()
         plt.show()
-
-    # NOTE Allowing empty raised amount and investor count - fill in with 0 for missing data
-    # fr = fr[fr['raised_amount_usd'].notna()]
-    # fr = fr[ (fr['investor_count'].notna()) & (fr['investor_count']!=0) ]
-
-    # NOTE Keeping series unknown and undisclosed investment rounds because they are not necessarily the last investment round
-    # fr = fr[ (fr['investment_type'] != 'undisclosed') & (fr['investment_type'] != 'series_unknown') ]
 
     # Round count in the warmup period 
     fr['round_count'] = fr.groupby('org_uuid')['uuid'].transform('size')
@@ -99,6 +94,15 @@ def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
         c = 'last_round_max_inv_{}_centrality'.format(syn_centrality)
         fr[c] = np.where(fr[c].notna(), 1, 0)
 
+    if syn_cb_rank:
+        if syn_centrality:
+            raise ValueError('Please only pick one of centrality measure, or CB rank.')
+        else:
+            investor_cols = ['uuid', 'rank']
+            investors = pd.read_csv('../../../data/raw/investors.csv', usecols=investor_cols).rename(columns={'uuid':'investor_uuid'})
+    
+            fr = pd.merge(fr, investors, on='investor_uuid', how='left')
+
     # Number of unique renowned investors in the warmup period
     fr['known_investor_count'] = fr.groupby('org_uuid')['investor_uuid'].transform(lambda x: x.nunique(dropna=True))
     
@@ -123,5 +127,4 @@ def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
     return fr
 
 if __name__=="__main__":
-    show(funding_info('2013-12-01','2017-12-01', syn_centrality='closeness', stats=False))
-    show(funding_info('2013-12-01','2017-12-01', syn_centrality='closeness', syn_binary=True, stats=False))
+    funding_info('2013-12-01','2017-12-01', syn_cb_rank=True, stats=False)
