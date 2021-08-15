@@ -1,10 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-# from tabloo import show
+from tabloo import show
 from datetime import datetime
 import numpy as np
 
-def funding_info(tc, ts, syn_centrality=None, stats=False):
+def funding_info(tc, ts, syn_centrality=None, syn_binary=False, stats=False):
     '''
     Creates the same company information features used by Arroyo et al. for use
     in the warmup period where tc <= warmup period < ts
@@ -95,6 +95,10 @@ def funding_info(tc, ts, syn_centrality=None, stats=False):
 
             fr = fr.drop(columns= '{}_centrality'.format(syn_centrality))
 
+    if syn_binary and syn_centrality:
+        c = 'last_round_max_inv_{}_centrality'.format(syn_centrality)
+        fr[c] = np.where(fr[c].notna(), 1, 0)
+
     # Number of unique renowned investors in the warmup period
     fr['known_investor_count'] = fr.groupby('org_uuid')['investor_uuid'].transform(lambda x: x.nunique(dropna=True))
     
@@ -119,4 +123,5 @@ def funding_info(tc, ts, syn_centrality=None, stats=False):
     return fr
 
 if __name__=="__main__":
-    funding_info('2013-12-01','2017-12-01', syn_centrality='closeness', stats=False)
+    show(funding_info('2013-12-01','2017-12-01', syn_centrality='closeness', stats=False))
+    show(funding_info('2013-12-01','2017-12-01', syn_centrality='closeness', syn_binary=True, stats=False))
